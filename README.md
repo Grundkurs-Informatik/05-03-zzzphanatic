@@ -36,7 +36,7 @@
 
 ### Schritt 6: Git-Begriffe definieren
 - Wenn Sie dies noch nicht getan haben, leiten Sie passende Definitionen für **Git-Repository**, **Push-** bzw. **Pull-Anfragen** aus Ihrer aktuellen Arbeitserfahrung ab.
-- Wenn Sie damit fertig sind und die Arbeitsphase noch nicht abgelaufen ist, gehen Sie zu Schritt 7. Andernfalls kehren Sie zu Ihren analogen Arbeitsplätzen zurück.
+- Wenn Sie damit fertig sind und die Arbeitsphase noch nicht abgelaufen ist, erledigen Sie Zusatzaufgaben auf der Rückseite. Andernfalls kehren Sie zu Ihren analogen Arbeitsplätzen zurück.
 
 ### Schritt 7: Einen neuen Branch im Repository anlegen
 - Nun ist es Zeit, unterschiedliche Sortiermethoden in einem Prototyp zusammenzustellen. Sie müssen zunächst eine separate Stelle in Ihrem Repository für andere Mitschüler:innen anlegen, wo diese Ihre Sortiermethode leicht finden können. 
