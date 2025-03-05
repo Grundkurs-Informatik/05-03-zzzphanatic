@@ -213,56 +213,95 @@ public class Kartenmanager_SuS extends Ereignisanwendung {
     // Ereignismethoden
     // ----------------------------------------------------------
 
-    public void Sort_Klick() {
+   public void Sort_Klick() {
+
+
+
         loescheAnzeige();
-        startZeit = System.currentTimeMillis();
-        
-        sortiereKartenWert();
 
-        endZeit=System.currentTimeMillis();
-        double d = endZeit - startZeit;
-        zeichneKarten(0, 50, 150);
 
-    }
+        startZeit = System.nanoTime();
 
-    private void sortiereKartenWert() 
-    {
-        for (int i = 0; i < kartenAnzahl; i++) 
-        {
-            // Minimum im Bereich i..(kartenAnzahl-1) suchen
-            int minIndex = findeMinimumkartewert(i-1, kartenAnzahl - 1);
 
-            // Jetzt die Karte an Position minIndex "herausnehmen" ...
-            karten.geheZuPosition(minIndex); 
-            if(minKarte == null) continue;
-            Karte minKarte = karten.aktuellesElement();
-            karten.loescheAktuelles();
 
-            // ... und an Position i einfügen
-            karten.geheZuPosition(i);
-            karten.fuegeDavorEin(minKarte);
-        }
-    }
 
-    private int findeMinimumkartewert(int s, int end){
-        int j = s;
-        for (int start = s; start < end; start++){
-            // Vergleiche die aktuelle Karte mit der Minimumkarte des Rests
-            karten.geheZuPosition(j); 
-            if(a == null) continue;
-            Karte a = karten.aktuellesElement();
 
-            karten.geheZuPosition(start); 
-            if(b == null) continue;
-            Karte b = karten.aktuellesElement();
+        // z.B. 1000 Durchläufe
 
-            if (a.wert > b.wert || (a.wert == b.wert && a.farbe > b.farbe)){
-                j = start;
-            }
 
-        }
-        return j;
-    }
+        for(int I=0; I<1000; I++){
+
+
+            boolean sortiert = true;
+
+
+            karten = new Liste<Karte>(); 
+
+
+            initialisiereKarten(0);
+
+
+            do
+
+
+            {
+
+
+                sortiert = true;
+
+
+                for(int i = 1; i < karten.laenge(); i++)
+
+
+                {
+
+
+                    karten.geheZuPosition(i);
+
+
+                    Karte Karte_a = karten.aktuellesElement();           
+
+
+                    karten.geheZuPosition(i+1);
+
+
+                    Karte Karte_b = karten.aktuellesElement();
+
+
+                    if(Karte_a.wert > Karte_b.wert||Karte_a.wert == Karte_b.wert && Karte_a.farbe < Karte_b.farbe)
+
+
+                    {
+
+
+                        karten.ersetzeAktuelles(Karte_a);
+
+
+                        karten.geheZuPosition(i);
+
+
+                        karten.ersetzeAktuelles(Karte_b);
+
+
+                        sortiert = false;
+
+
+                    }
+
+
+                }
+
+
+
+
+
+            }while(!sortiert);
+
+
+
+
+
+        } 
 
     public void Update_Klick() {
         String s = tfUmfang.inhaltAlsText().trim();
