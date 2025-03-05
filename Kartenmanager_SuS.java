@@ -35,6 +35,11 @@ public class Kartenmanager_SuS extends Ereignisanwendung {
     private Textfeld tfPos;     // Position für Einfügen/Entfernen
 
     private Buntstift stift;
+    private Karte Übertragung;
+    private Karte aktuell;
+    private Karte a;
+    private Karte b;
+    private Karte minKarte;
 
     // -----------------------------
     // 2) Listen-Datenstruktur
@@ -47,6 +52,14 @@ public class Kartenmanager_SuS extends Ereignisanwendung {
         public Karte(int w, int f) {
             this.wert = w;
             this.farbe= f;
+        }
+
+        public int getWert(){
+            return this.wert;
+        }
+
+        public int getFarbe(){
+            return this.farbe;
         }
     }
 
@@ -62,7 +75,8 @@ public class Kartenmanager_SuS extends Ereignisanwendung {
     private String[] farbenNamen = {
             "Kreuz", "Karo", "Herz", "Pik"
         };
-
+    private Textwerkzeug tw;
+    //private int start;
     // Zeitmessung
     private long startZeit;
     private long endZeit;
@@ -71,6 +85,7 @@ public class Kartenmanager_SuS extends Ereignisanwendung {
         super();
 
         stift = new Buntstift();
+        tw    = new Textwerkzeug();
 
         // 3) GUI: 
         //    - InfoEtikett + Stapelgröße/Erneuern/Sortieren (links)
@@ -140,11 +155,11 @@ public class Kartenmanager_SuS extends Ereignisanwendung {
 
         // Erzeuge eine neue Karte
         int w = (int)(Math.random()*13)+1;
-        int f = (int)(Math.random()*4);
+        int f = (int)(Math.random()*3);
 
         // Zur Sicherheit: Erst zumEnde(), dann fuegeDahinterEin
-        karten.zumEnde();
         karten.fuegeDahinterEin(new Karte(w, f));
+        karten.zumEnde();
 
         initialisiereKarten(i+1);
     }
@@ -155,24 +170,24 @@ public class Kartenmanager_SuS extends Ereignisanwendung {
      *  holt das aktuelleElement() => (wert, farbe),
      *  zeichnet die Karte.
      */
-    void zeichneKarten(int index, int x, int y) {
-        if (index >= karten.laenge()) return; // Ende der Liste
+    void zeichneKarten(int start, int x, int y) {
+        if (start >= karten.laenge()) return; // Ende der Liste
 
         // Zur Position index gehen
-        karten.geheZuPosition(index+1);
+        karten.geheZuPosition(start+1);
         Karte c = karten.aktuellesElement(); // => (wert, farbe)
 
         String name = farbenNamen[c.farbe] + " " + werteNamen[c.wert];
         zeichneEineKarte(x, y, name);
 
         x += 90;
-        if ((index+1)%13 == 0) {
+        if ((start+1)%13 == 0) {
             x = 50;
             y += 130;
         }
 
         // rekursiver Aufruf
-        zeichneKarten(index+1, x, y);
+        zeichneKarten(start+1, x, y);
     }
 
     void zeichneEineKarte(int x, int y, String name) {
@@ -200,43 +215,54 @@ public class Kartenmanager_SuS extends Ereignisanwendung {
 
     public void Sort_Klick() {
         loescheAnzeige();
-        startZeit = System.nanoTime();
+        startZeit = System.currentTimeMillis();
+        
+        sortiereKartenWert();
 
-        // z.B. 1000 Durchläufe
-        for(int I=0; I<1000; I++){
-            boolean sortiert = true;
-            karten = new Liste<Karte>(); 
-            initialisiereKarten(0);
-            do
-            {
-                sortiert = true;
-                for(int i = 1; i < karten.laenge(); i++)
-                {
-                    karten.geheZuPosition(i);
-                    Karte Karte_a = karten.aktuellesElement();           
-                    karten.geheZuPosition(i+1);
-                    Karte Karte_b = karten.aktuellesElement();
-                    if(Karte_a.wert > Karte_b.wert||Karte_a.wert == Karte_b.wert && Karte_a.farbe < Karte_b.farbe)
-                    {
-                        karten.ersetzeAktuelles(Karte_a);
-                        karten.geheZuPosition(i);
-                        karten.ersetzeAktuelles(Karte_b);
-                        sortiert = false;
-                    }
-                }
-
-            }while(!sortiert);
-
-        }
-
-        endZeit=System.nanoTime();
+        endZeit=System.currentTimeMillis();
         double d = endZeit - startZeit;
-        d = d/1000000;
-
         zeichneKarten(0, 50, 150);
-        infoEtikett.setzeInhalt("Erfolgreich Sortiert. Zeit: "+ d + " ms");
+
     }
 
+    private void sortiereKartenWert() 
+    {
+        for (int i = 0; i < kartenAnzahl; i++) 
+        {
+            // Minimum im Bereich i..(kartenAnzahl-1) suchen
+            int minIndex = findeMinimumkartewert(i-1, kartenAnzahl - 1);
+
+            // Jetzt die Karte an Position minIndex "herausnehmen" ...
+            karten.geheZuPosition(minIndex); 
+            if(minKarte == null) continue;
+            Karte minKarte = karten.aktuellesElement();
+            karten.loescheAktuelles();
+
+            // ... und an Position i einfügen
+            karten.geheZuPosition(i);
+            karten.fuegeDavorEin(minKarte);
+        }
+    }
+
+    private int findeMinimumkartewert(int s, int end){
+        int j = s;
+        for (int start = s; start < end; start++){
+            // Vergleiche die aktuelle Karte mit der Minimumkarte des Rests
+            karten.geheZuPosition(j); 
+            if(a == null) continue;
+            Karte a = karten.aktuellesElement();
+
+            karten.geheZuPosition(start); 
+            if(b == null) continue;
+            Karte b = karten.aktuellesElement();
+
+            if (a.wert > b.wert || (a.wert == b.wert && a.farbe > b.farbe)){
+                j = start;
+            }
+
+        }
+        return j;
+    }
 
     public void Update_Klick() {
         String s = tfUmfang.inhaltAlsText().trim();
@@ -260,54 +286,50 @@ public class Kartenmanager_SuS extends Ereignisanwendung {
     }
 
     public void Einfuegen_Klick() {
-        try
-        {
-            int pos = Integer.parseInt(tfPos.inhaltAlsText());
-            int w = auswahlWert.index();
-            int f = auswahlFarbe.index()-1;
-            loescheAnzeige();
-
-            karten.geheZuPosition(pos);
-
-            if(pos >= karten.laenge())
-            {
-                karten.fuegeDahinterEin(new Karte(w,f));
-                tfPos.setzeInhalt(karten.laenge());
-            }else if(pos < 0)
-            {
-                tfPos.setzeInhalt(0);
-                karten.fuegeDavorEin(new Karte(w,f));
-            }else
-            {
-                karten.fuegeDavorEin(new Karte(w,f));
+        //Platzhalter
+        loescheAnzeige();  // Alle bisher gezeichneten Karten entfernen.
+        String st = tfPos.inhaltAlsText().trim();
+        int neupos;
+        if (!tw.istGanzeZahl(st)) {
+            // Falls nicht, Standard
+            neupos = 0;
+        } else {                                                                                
+            // Falls ja, umwandeln
+            neupos = tw.alsGanzeZahl(st);
+            // Werte <=0 sind ungültig
+            if (neupos <= 0) {
+                neupos = 0;
             }
-
-            zeichneKarten(0, 50, 150);
-
-        }catch(NumberFormatException e)
-        {
-            infoEtikett.setzeInhalt("Ungültige Position");
         }
+        karten.geheZuPosition(neupos);
+        int w = auswahlWert.index();
+        int f = auswahlFarbe.index()-1;
+        Übertragung = new Karte(w,f);
+        karten.fuegeDavorEin(Übertragung);
+        // Neu füllen, z. B. mit zufälligen Karten
+        zeichneKarten(0,50,150); // den neuen Stapel darstellen
     }
 
     public void Entfernen_Klick() {
-        try
-        {
-            int pos = Integer.parseInt(tfPos.inhaltAlsText());
-            loescheAnzeige();
-            if(pos <= 0)
-            {
-                pos = 1;
-                tfPos.setzeInhalt(1);
+        //Platzhalter
+        loescheAnzeige();  // Alle bisher gezeichneten Karten entfernen.
+        String st = tfPos.inhaltAlsText().trim();
+        int neupos;
+        if (!tw.istGanzeZahl(st)) {
+            // Falls nicht, Standard
+            neupos = 1;
+        } else {                                                                                
+            // Falls ja, umwandeln
+            neupos = tw.alsGanzeZahl(st);
+            // Werte <=0 sind ungültig
+            if (neupos <= 1) {
+                neupos = 1;
             }
-            if(pos >= karten.laenge())tfPos.setzeInhalt(karten.laenge()-1);
-            karten.geheZuPosition(pos);
-            karten.entferneAktuelles();
-            zeichneKarten(0, 50, 150);
-        }catch(NumberFormatException e)
-        {
-            infoEtikett.setzeInhalt("Ungültige Position");
         }
-    }
+        karten.geheZuPosition(neupos);
 
+        karten.loescheAktuelles();
+        // Neu füllen, z. B. mit zufälligen Karten
+        zeichneKarten(0,50,150); // den neuen Stapel darstellen
+    }
 }
